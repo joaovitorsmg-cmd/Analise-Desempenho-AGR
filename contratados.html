@@ -498,9 +498,7 @@ const FUNC_LBL = {B:'Balconista',R:'Representante',P:'Promotor'};
 //  INIT
 // ============================================================
 document.getElementById('tb-date').textContent = new Date().toLocaleDateString('pt-BR');
-
-// Default: últimos 18 meses
-setPreset('2025-01-01','2026-06-05','Últimos 18 meses');
+// (chamada de init movida para o final do script — evita TDZ)
 
 // Populate filial filter in ranking
 function populateFilialFilter() {
@@ -1123,12 +1121,13 @@ function renderCurrentView() {
   else if(curView==='historico') renderHistorico();
 }
 
-// INIT — wait for DOM then set default period and render
-document.addEventListener('DOMContentLoaded', function() {
-  // Set default: Últimos 18 meses
+// (init movido para o final do script)
+
+// ===== INIT (última instrução — todas as const/let já declaradas) =====
+(function init(){
   const defBtn = document.getElementById('preset-default');
   setPreset('2025-01-01','2026-06-05','Últimos 18 meses', defBtn);
-});
+})();
 </script>
 </body>
 </html>
