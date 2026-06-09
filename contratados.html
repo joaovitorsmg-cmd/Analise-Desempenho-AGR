@@ -249,13 +249,13 @@ th.sd::after{content:' ↓';color:var(--brand);font-weight:800}
     <span style="color:var(--text3);font-size:13px">até</span>
     <input type="date" id="dt-fim" onchange="applyPeriod()">
     <div class="period-presets">
-      <button class="preset-btn" onclick="setPreset('2026-01-01','2026-06-05','Jan–Jun 2026')">Jan–Jun 2026</button>
-      <button class="preset-btn" onclick="setPreset('2026-01-01','2026-03-31','Q1 2026')">Q1 2026</button>
-      <button class="preset-btn" onclick="setPreset('2026-04-01','2026-06-05','Q2 2026')">Q2 2026</button>
-      <button class="preset-btn" onclick="setPreset('2025-01-01','2025-12-31','2025')">2025</button>
-      <button class="preset-btn" onclick="setPreset('2024-01-01','2024-12-31','2024')">2024</button>
-      <button class="preset-btn" onclick="setPreset('2023-01-01','2023-12-31','2023')">2023</button>
-      <button class="preset-btn active" onclick="setPreset('2025-01-01','2026-06-05','Últimos 18 meses')" id="preset-default">Últimos 18 meses</button>
+      <button class="preset-btn" onclick=\"setPreset('2026-01-01','2026-06-05','Jan–Jun 2026',this)\">Jan–Jun 2026</button>
+      <button class="preset-btn" onclick=\"setPreset('2026-01-01','2026-03-31','Q1 2026',this)\">Q1 2026</button>
+      <button class="preset-btn" onclick=\"setPreset('2026-04-01','2026-06-05','Q2 2026',this)\">Q2 2026</button>
+      <button class="preset-btn" onclick=\"setPreset('2025-01-01','2025-12-31','2025',this)\">2025</button>
+      <button class="preset-btn" onclick=\"setPreset('2024-01-01','2024-12-31','2024',this)\">2024</button>
+      <button class="preset-btn" onclick=\"setPreset('2023-01-01','2023-12-31','2023',this)\">2023</button>
+      <button class="preset-btn active" onclick=\"setPreset('2025-01-01','2026-06-05','Últimos 18 meses',this)\" id="preset-default">Últimos 18 meses</button>
     </div>
   </div>
   <div class="metrics" id="resumo-metrics"></div>
@@ -513,9 +513,9 @@ function populateFilialFilter() {
 // ============================================================
 //  PERIOD CONTROL
 // ============================================================
-function setPreset(ini, fim, label) {
+function setPreset(ini, fim, label, activeEl) {
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-  event?.target?.classList.add('active');
+  if(activeEl) activeEl.classList.add('active');
   document.getElementById('dt-ini').value = ini;
   document.getElementById('dt-fim').value = fim;
   periodoIni = ini; periodoFim = fim;
@@ -1092,16 +1092,27 @@ let curView = 'resumo';
 function nav(v) {
   views.forEach(id=>{
     const el=document.getElementById('v-'+id);
-    if(el) el.style.display=id===v?'':'none';
+    if(el) el.style.display = (id===v) ? '' : 'none';
   });
   document.querySelectorAll('.nav-item').forEach(item=>{
-    item.classList.toggle('active', item.getAttribute('onclick')===`nav('${v}')`);
+    const oc = item.getAttribute('onclick')||'';
+    item.classList.toggle('active', oc === `nav('${v}')`);
   });
   curView = v;
   renderCurrentView();
 }
 
 function renderCurrentView() {
+  if(!filteredData || !filteredData.length) {
+    // Show empty state in metrics
+    const km = document.getElementById('resumo-metrics');
+    if(km) km.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:13px;grid-column:1/-1">Nenhum contratado no período selecionado.</div>';
+    const ki = document.getElementById('resumo-insights');
+    if(ki) ki.innerHTML = '';
+    const kt = document.getElementById('resumo-tbl');
+    if(kt) kt.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Nenhum dado para o período selecionado.</td></tr>';
+    return;
+  }
   if(curView==='resumo') renderResumo();
   else if(curView==='insights') renderInsights();
   else if(curView==='filiais') renderFiliais();
@@ -1112,8 +1123,12 @@ function renderCurrentView() {
   else if(curView==='historico') renderHistorico();
 }
 
-// INIT
-nav('resumo');
+// INIT — wait for DOM then set default period and render
+document.addEventListener('DOMContentLoaded', function() {
+  // Set default: Últimos 18 meses
+  const defBtn = document.getElementById('preset-default');
+  setPreset('2025-01-01','2026-06-05','Últimos 18 meses', defBtn);
+});
 </script>
 </body>
 </html>
